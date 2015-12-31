@@ -1,0 +1,12 @@
+FROM haproxy:1.6.2
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends procps rsyslog \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+ADD haproxy.start.sh  /start
+ADD haproxy.reload.sh /reload
+ADD rsyslog.conf      /etc/rsyslog.conf
+ADD haproxy.cfg       /etc/haproxy/haproxy.cfg
+CMD ["/start"]

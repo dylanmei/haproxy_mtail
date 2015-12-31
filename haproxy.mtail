@@ -1,0 +1,44 @@
+counter mtail_syslog_line_count by process, pid
+
+# Syslog decorator
+def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}))/ +
+  /\s+(?:\w+@)?(?P<hostname>[\w\.-]+)\s+(?P<process>[\w\.-]+)(?:\[(?P<pid>\d+)\])?:\s+(?P<message>.*)/ {
+    len($legacy_date) > 0 {
+      strptime($2, "Jan _2 15:04:05")
+    }
+    len($rfc3339_date) > 0 {
+      strptime($rfc3339_date, "2006-01-02T15:04:05-07:00")
+    }
+    mtail_syslog_line_count[$process][$pid]++
+    next
+  }
+}
+
+@syslog {
+  counter haproxy_http_frontend_request_count by frontend, http_method
+  counter haproxy_http_frontend_response_count by frontend, status_code
+  counter haproxy_http_backend_response_count by backend, status_code
+
+  # HTTP https://cbonte.github.io/haproxy-dconv/configuration-1.6.html#8.2.3
+  /(?P<client_ip>(\d+\.){3}\d+):(?P<client_port>\d+) / +                                           # client_ip ':' client_port
+  /\S+ / +                                                                                         # accept_date
+  /(?P<frontend_name>\S+) / +                                                                      # frontend_name
+  /(?P<backend_name>[\w\.-]+)\/(?P<server_name>[\w\.-]+) / +                                       # backend_name '/' server_name 
+  /(?P<tq>-?\d+)\/(?P<tw>-?\d+)\/(?P<tc>-?\d+)\/(?P<tr>-?\d+)\/(?P<tt>\+?\d+) / +                  # Tq '/' Tw '/' Tc '/' Tr '/' Tt*
+  /(?P<status_code>\d{3}) / +                                                                      # status_code
+  /(?P<bytes_read>\+?\d+) / +                                                                      # bytes_read*
+  /\S+ / +                                                                                         # captured_request_cookie
+  /\S+ / +                                                                                         # captured_response_cookie
+  /\S+ / +                                                                                         # termination_state
+  /(?P<actconn>\d+)\/(?P<feconn>\d+)\/(?P<beconn>\d+)\/(?P<srv_conn>\d+)\/(?P<retries>\+?\d+) / +  # actconn '/' feconn '/' beconn '/' srv_conn '/' retries*
+  /(?P<srv_queue>\d+)\/(?P<backend_queue>\d+) / +                                                  # srv_queue '/' backend_queue
+  /(?:{[^}]*} )?/ +                                                                                # '{' captured_request_headers* '}'
+  /(?:{[^}]*} )?/ +                                                                                # '{' captured_response_headers* '}'
+  /"(?P<http_method>\w+) \S+ HTTP\/(?P<http_version>\d+\.\d+)"/ +                                  # '"' http_request '"'
+  /$/ {
+    haproxy_http_frontend_request_count[$frontend_name][$http_method]++
+    haproxy_http_frontend_response_count[$frontend_name][$status_code]++
+    haproxy_http_backend_response_count[$backend_name][$status_code]++
+  }
+}
+

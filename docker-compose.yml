@@ -1,0 +1,23 @@
+haproxy:
+  build: .
+  dockerfile: Dockerfile.haproxy
+  command: /start
+  ports:
+    - 8080:80
+    - 3000:3000
+  links:
+    - webapp
+  volumes:
+    - ./logs:/var/log/haproxy
+mtail:
+  image: dylanmei/mtail
+  command: -progs /etc/mtail -logs /var/log/haproxy/haproxy.log -v 3 -alsologtostderr
+  ports:
+    - 3903:3903
+  volumes:
+    - ./logs:/var/log/haproxy
+    - ./haproxy.mtail:/etc/mtail/haproxy.mtail
+webapp:
+  image: training/webapp
+  expose:
+    - 5000
