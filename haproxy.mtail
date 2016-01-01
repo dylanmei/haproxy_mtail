@@ -1,4 +1,4 @@
-counter mtail_syslog_line_count by process, pid
+counter mtail_line_count by process, pid
 
 # Syslog decorator
 def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}))/ +
@@ -9,7 +9,7 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
     len($rfc3339_date) > 0 {
       strptime($rfc3339_date, "2006-01-02T15:04:05-07:00")
     }
-    mtail_syslog_line_count[$process][$pid]++
+    mtail_line_count[$process][$pid]++
     next
   }
 }
