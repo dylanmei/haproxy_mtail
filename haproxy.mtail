@@ -17,19 +17,19 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
 @syslog {
   gauge haproxy_active_connections
 
-  gauge haproxy_frontend_active_connections
+  gauge haproxy_frontend_active_connections by frontend
   counter haproxy_frontend_response_count by frontend
   counter haproxy_frontend_bytes_read by frontend
   counter haproxy_frontend_http_request_count by frontend, http_method
   counter haproxy_frontend_http_response_count by frontend, status_code
 
-  gauge haproxy_backend_active_connections
+  gauge haproxy_backend_active_connections by backend
   counter haproxy_backend_response_count by backend
   counter haproxy_backend_bytes_read by backend
   counter haproxy_backend_http_request_count by backend, http_method
   counter haproxy_backend_http_response_count by backend, status_code
 
-  gauge haproxy_server_active_connections
+  gauge haproxy_server_active_connections by server
   counter haproxy_server_response_count by server
   counter haproxy_server_bytes_read by server
   counter haproxy_server_http_request_count by server, http_method
@@ -54,19 +54,19 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
   /$/ {
     haproxy_active_connections = $actconn
 
-    haproxy_frontend_active_connections = $feconn
+    haproxy_frontend_active_connections[$frontend_name] = $feconn
     haproxy_frontend_response_count[$frontend_name]++
     haproxy_frontend_bytes_read[$frontend_name] += $bytes_read
     haproxy_frontend_http_request_count[$frontend_name][$http_method]++
     haproxy_frontend_http_response_count[$frontend_name][$status_code]++
 
-    haproxy_backend_active_connections = $beconn
+    haproxy_backend_active_connections[$backend_name] = $beconn
     haproxy_backend_response_count[$backend_name]++
     haproxy_backend_bytes_read[$backend_name] += $bytes_read
     haproxy_backend_http_request_count[$backend_name][$http_method]++
     haproxy_backend_http_response_count[$backend_name][$status_code]++
 
-    haproxy_server_active_connections = $srv_conn
+    haproxy_server_active_connections[$server_name] = $srv_conn
     haproxy_server_response_count[$server_name]++
     haproxy_server_bytes_read[$server_name] += $bytes_read
     haproxy_server_http_request_count[$server_name][$http_method]++
