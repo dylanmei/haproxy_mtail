@@ -17,72 +17,226 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
 @syslog {
   gauge haproxy_active_connections
 
+  # FRONTEND METRICS
   gauge haproxy_frontend_active_connections by frontend
+  counter haproxy_frontend_request_count by frontend
   counter haproxy_frontend_response_count by frontend
-  counter haproxy_frontend_retry_count by frontend
-  counter haproxy_frontend_bytes_read by frontend
   counter haproxy_frontend_http_request_count by frontend, http_method
   counter haproxy_frontend_http_response_count by frontend, status_code
+  counter haproxy_frontend_retry_count by frontend
+  counter haproxy_frontend_redispatch_count by frontend
+  counter haproxy_frontend_bytes_read by frontend
+  counter haproxy_frontend_http_aborted_requests by frontend
+  timer haproxy_frontend_http_request_wait_milliseconds by frontend
+  counter haproxy_frontend_http_request_wait_milliseconds_sum by frontend
+  counter haproxy_frontend_rejected_requests by frontend
+  timer haproxy_frontend_queue_wait_milliseconds by frontend
+  counter haproxy_frontend_queue_wait_milliseconds_sum by frontend
+  counter haproxy_frontend_aborted_connections by frontend
+  timer haproxy_frontend_connection_wait_milliseconds by frontend
+  counter haproxy_frontend_connection_wait_milliseconds_sum by frontend
+  counter haproxy_frontend_http_aborted_responses by frontend
+  timer haproxy_frontend_http_response_wait_milliseconds by frontend
+  counter haproxy_frontend_http_response_wait_milliseconds_sum by frontend
+  timer haproxy_frontend_total_time_milliseconds by frontend
+  counter haproxy_frontend_total_time_milliseconds_sum by frontend
 
+  # BACKEND METRICS
   gauge haproxy_backend_active_connections by backend
+  counter haproxy_backend_request_count by backend
   counter haproxy_backend_response_count by backend
-  counter haproxy_backend_retry_count by backend
-  gauge haproxy_backend_queue_count by backend
-  counter haproxy_backend_bytes_read by backend
   counter haproxy_backend_http_request_count by backend, http_method
   counter haproxy_backend_http_response_count by backend, status_code
+  counter haproxy_backend_queue_count by backend
+  counter haproxy_backend_retry_count by backend
+  counter haproxy_backend_redispatch_count by backend
+  counter haproxy_backend_bytes_read by backend
+  counter haproxy_backend_http_aborted_requests by backend
+  timer haproxy_backend_http_request_wait_milliseconds by backend
+  counter haproxy_backend_http_request_wait_milliseconds_sum by backend
+  counter haproxy_backend_rejected_requests by backend
+  timer haproxy_backend_queue_wait_milliseconds by backend
+  counter haproxy_backend_queue_wait_milliseconds_sum by backend
+  counter haproxy_backend_aborted_connections by backend
+  timer haproxy_backend_connection_wait_milliseconds by backend
+  counter haproxy_backend_connection_wait_milliseconds_sum by backend
+  counter haproxy_backend_http_aborted_responses by backend
+  timer haproxy_backend_http_response_wait_milliseconds by backend
+  counter haproxy_backend_http_response_wait_milliseconds_sum by backend
+  timer haproxy_backend_total_time_milliseconds by backend
+  counter haproxy_backend_total_time_milliseconds_sum by backend
 
+  # SERVER METRICS
   gauge haproxy_server_active_connections by backend, server
+  counter haproxy_server_request_count by backend, server
   counter haproxy_server_response_count by backend, server
-  counter haproxy_server_retry_count by backend, server
-  gauge haproxy_server_queue_count by backend, server
-  counter haproxy_server_bytes_read by backend, server
   counter haproxy_server_http_request_count by backend, server, http_method
   counter haproxy_server_http_response_count by backend, server, status_code
+  counter haproxy_server_queue_count by backend, server
+  counter haproxy_server_retry_count by backend, server
+  counter haproxy_server_redispatch_count by backend, server
+  counter haproxy_server_bytes_read by backend, server
+  counter haproxy_server_http_aborted_requests by backend, server
+  timer haproxy_server_http_request_wait_milliseconds by backend, server
+  counter haproxy_server_http_request_wait_milliseconds_sum by backend, server
+  counter haproxy_server_rejected_requests by backend, server
+  timer haproxy_server_queue_wait_milliseconds by backend, server
+  counter haproxy_server_queue_wait_milliseconds_sum by backend, server
+  counter haproxy_server_aborted_connections by backend, server
+  timer haproxy_server_connection_wait_milliseconds by backend, server
+  counter haproxy_server_connection_wait_milliseconds_sum by backend, server
+  counter haproxy_server_http_aborted_responses by backend, server
+  timer haproxy_server_http_response_wait_milliseconds by backend, server
+  counter haproxy_server_http_response_wait_milliseconds_sum by backend, server
+  timer haproxy_server_total_time_milliseconds by backend, server
+  counter haproxy_server_total_time_milliseconds_sum by backend, server
 
   # HTTP https://cbonte.github.io/haproxy-dconv/configuration-1.6.html#8.2.3
-  /(?P<client_ip>(\d+\.){3}\d+):(?P<client_port>\d+) / +                                                             # client_ip ':' client_port
-  /\S+ / +                                                                                                           # accept_date
-  /(?P<frontend_name>\S+) / +                                                                                        # frontend_name
-  /(?P<backend_name>[\w\.-]+)\/(?P<server_name>[\w\.-]+) / +                                                         # backend_name '/' server_name 
-  /(?P<tq>-?\d+)\/(?P<tw>-?\d+)\/(?P<tc>-?\d+)\/(?P<tr>-?\d+)\/(?P<tt>\+?\d+) / +                                    # Tq '/' Tw '/' Tc '/' Tr '/' Tt*
-  /(?P<status_code>\d{3}) / +                                                                                        # status_code
-  /(?P<bytes_read>\+?\d+) / +                                                                                        # bytes_read*
-  /\S+ / +                                                                                                           # captured_request_cookie
-  /\S+ / +                                                                                                           # captured_response_cookie
-  /\S+ / +                                                                                                           # termination_state
-  /(?P<actconn>\d+)\/(?P<feconn>\d+)\/(?P<beconn>\d+)\/(?P<srv_conn>\d+)\/(?P<redispatched>\+)?(?P<retries>\d+) / +  # actconn '/' feconn '/' beconn '/' srv_conn '/' retries*
-  /(?P<srv_queue>\d+)\/(?P<backend_queue>\d+) / +                                                                    # srv_queue '/' backend_queue
-  /(?:{[^}]*} )?/ +                                                                                                  # '{' captured_request_headers* '}'
-  /(?:{[^}]*} )?/ +                                                                                                  # '{' captured_response_headers* '}'
-  /"(?P<http_method>\w+) \S+ HTTP\/(?P<http_version>\d+\.\d+)"/ +                                                    # '"' http_request '"'
+  /(?P<client_ip>(\d+\.){3}\d+):(?P<client_port>\d+) / +                                                                  # client_ip ':' client_port
+  /\S+ / +                                                                                                                # accept_date
+  /(?P<frontend_name>\S+) / +                                                                                             # frontend_name
+  /(?P<backend_name>[\w\.-]+)\/(?P<server_name>[\w\.-]+) / +                                                              # backend_name '/' server_name 
+  /(?P<tq>(?P<tqx>-1)|\d+)\/(?P<tw>(?P<twx>-1)|\d+)\/(?P<tc>(?P<tcx>-1)|\d+)\/(?P<tr>(?P<trx>-1)|\d+)\/\+?(?P<tt>\d+) / + # Tq '/' Tw '/' Tc '/' Tr '/' Tt*
+  /(?P<status_code>\d{3}) / +                                                                                             # status_code
+  /\+?(?P<bytes_read>\d+) / +                                                                                             # bytes_read*
+  /\S+ / +                                                                                                                # captured_request_cookie
+  /\S+ / +                                                                                                                # captured_response_cookie
+  /\S+ / +                                                                                                                # termination_state
+  /(?P<actconn>\d+)\/(?P<feconn>\d+)\/(?P<beconn>\d+)\/(?P<srv_conn>\d+)\/(?P<redispatched>\+)?(?P<retries>\d+) / +       # actconn '/' feconn '/' beconn '/' srv_conn '/' retries*
+  /(?P<srv_queue>\d+)\/(?P<backend_queue>\d+) / +                                                                         # srv_queue '/' backend_queue
+  /(?:{[^}]*} )?/ +                                                                                                       # '{' captured_request_headers* '}'
+  /(?:{[^}]*} )?/ +                                                                                                       # '{' captured_response_headers* '}'
+  /"(?P<http_method>\w+) \S+ HTTP\/(?P<http_version>\d+\.\d+)"/ +                                                         # '"' http_request '"'
   /$/ {
     haproxy_active_connections = $actconn
 
+    # FRONTEND METRICS
     haproxy_frontend_active_connections[$frontend_name] = $feconn
+    haproxy_frontend_request_count[$frontend_name]++
     haproxy_frontend_response_count[$frontend_name]++
-    haproxy_frontend_retry_count[$frontend_name]++
-    haproxy_frontend_bytes_read[$frontend_name] += $bytes_read
     haproxy_frontend_http_request_count[$frontend_name][$http_method]++
     haproxy_frontend_http_response_count[$frontend_name][$status_code]++
+    haproxy_frontend_retry_count[$frontend_name] += $retries
+    len($redispatched) != 0 {
+      haproxy_frontend_redispatch_count[$frontend_name]++
+    }
+    haproxy_frontend_bytes_read[$frontend_name] += $bytes_read
+    len($tqx) > 0 {
+      haproxy_frontend_http_aborted_requests[$frontend_name]++
+    }
+    len($tqx) == 0 {
+      haproxy_frontend_http_request_wait_milliseconds[$frontend_name] = $tq
+      haproxy_frontend_http_request_wait_milliseconds_sum[$frontend_name] += $tq
+    }
+    len($twx) > 0 {
+      haproxy_frontend_rejected_requests[$frontend_name]++
+    }
+    len($twx) == 0 {
+      haproxy_frontend_queue_wait_milliseconds[$frontend_name] = $tw
+      haproxy_frontend_queue_wait_milliseconds_sum[$frontend_name] += $tw
+    }
+    len($tcx) > 0 {
+      haproxy_frontend_aborted_connections[$frontend_name]++
+    }
+    len($tcx) == 0 {
+      haproxy_frontend_connection_wait_milliseconds[$frontend_name] = $tc
+      haproxy_frontend_connection_wait_milliseconds_sum[$frontend_name] += $tc
+    }
+    len($trx) > 0 {
+      haproxy_frontend_http_aborted_responses[$frontend_name]++
+    }
+    len($trx) == 0 {
+      haproxy_frontend_http_response_wait_milliseconds[$frontend_name] = $tr
+      haproxy_frontend_http_response_wait_milliseconds_sum[$frontend_name] += $tr
+    }
+    haproxy_frontend_total_time_milliseconds[$frontend_name] = $tt
+    haproxy_frontend_total_time_milliseconds_sum[$frontend_name] += $tt
 
+    # BACKEND METRICS
     haproxy_backend_active_connections[$backend_name] = $beconn
+    haproxy_backend_request_count[$backend_name]++
     haproxy_backend_response_count[$backend_name]++
-    haproxy_backend_retry_count[$backend_name]++
-    haproxy_backend_queue_count[$backend_name] = $backend_queue
-    haproxy_backend_bytes_read[$backend_name] += $bytes_read
     haproxy_backend_http_request_count[$backend_name][$http_method]++
     haproxy_backend_http_response_count[$backend_name][$status_code]++
-
-    haproxy_server_active_connections[$backend_name][$server_name] = $srv_conn
-    haproxy_server_response_count[$backend_name][$server_name]++
-    len($redispatched) == 0 {
-      haproxy_server_retry_count[$backend_name][$server_name]++
+    haproxy_backend_queue_count[$backend_name] = $backend_queue
+    haproxy_backend_retry_count[$backend_name] += $retries
+    len($redispatched) != 0 {
+      haproxy_backend_redispatch_count[$backend_name]++
     }
-    haproxy_server_queue_count[$backend_name][$server_name] = $srv_queue
-    haproxy_server_bytes_read[$backend_name][$server_name] += $bytes_read
+    haproxy_backend_bytes_read[$backend_name] += $bytes_read
+    len($tqx) > 0 {
+      haproxy_backend_http_aborted_requests[$backend_name]++
+    }
+    len($tqx) == 0 {
+      haproxy_backend_http_request_wait_milliseconds[$backend_name] = $tq
+      haproxy_backend_http_request_wait_milliseconds_sum[$backend_name] += $tq
+    }
+    len($twx) > 0 {
+      haproxy_backend_rejected_requests[$backend_name]++
+    }
+    len($twx) == 0 {
+      haproxy_backend_queue_wait_milliseconds[$backend_name] = $tw
+      haproxy_backend_queue_wait_milliseconds_sum[$backend_name] += $tw
+    }
+    len($tcx) > 0 {
+      haproxy_backend_aborted_connections[$backend_name]++
+    }
+    len($tcx) == 0 {
+      haproxy_backend_connection_wait_milliseconds[$backend_name] = $tc
+      haproxy_backend_connection_wait_milliseconds_sum[$backend_name] += $tc
+    }
+    len($trx) > 0 {
+      haproxy_backend_http_aborted_responses[$backend_name]++
+    }
+    len($trx) == 0 {
+      haproxy_backend_http_response_wait_milliseconds[$backend_name] = $tr
+      haproxy_backend_http_response_wait_milliseconds_sum[$backend_name] += $tr
+    }
+    haproxy_backend_total_time_milliseconds[$backend_name] = $tt
+    haproxy_backend_total_time_milliseconds_sum[$backend_name] += $tt
+
+    # SERVER METRICS
+    haproxy_server_active_connections[$backend_name][$server_name] = $srv_conn
+    haproxy_server_request_count[$backend_name][$server_name]++
+    haproxy_server_response_count[$backend_name][$server_name]++
     haproxy_server_http_request_count[$backend_name][$server_name][$http_method]++
     haproxy_server_http_response_count[$backend_name][$server_name][$status_code]++
+    haproxy_server_queue_count[$backend_name][$server_name] = $srv_queue
+    haproxy_server_retry_count[$backend_name][$server_name] += $retries
+    len($redispatched) != 0 {
+      haproxy_backend_redispatch_count[$backend_name][$server_name]++
+    }
+    haproxy_server_bytes_read[$backend_name][$server_name] += $bytes_read
+    len($tqx) > 0 {
+      haproxy_server_http_aborted_requests[$backend_name][$server_name]++
+    }
+    len($tqx) == 0 {
+      haproxy_server_http_request_wait_milliseconds[$backend_name][$server_name] = $tq
+      haproxy_server_http_request_wait_milliseconds_sum[$backend_name][$server_name] += $tq
+    }
+    len($twx) > 0 {
+      haproxy_server_rejected_requests[$backend_name][$server_name]++
+    }
+    len($twx) == 0 {
+      haproxy_server_queue_wait_milliseconds[$backend_name][$server_name] = $tw
+      haproxy_server_queue_wait_milliseconds_sum[$backend_name][$server_name] += $tw
+    }
+    len($tcx) > 0 {
+      haproxy_server_aborted_connections[$backend_name][$server_name]++
+    }
+    len($tcx) == 0 {
+      haproxy_server_connection_wait_milliseconds[$backend_name][$server_name] = $tc
+      haproxy_server_connection_wait_milliseconds_sum[$backend_name][$server_name] += $tc
+    }
+    len($trx) > 0 {
+      haproxy_server_http_aborted_responses[$backend_name][$server_name]++
+    }
+    len($trx) == 0 {
+      haproxy_server_http_response_wait_milliseconds[$backend_name][$server_name] = $tr
+      haproxy_server_http_response_wait_milliseconds_sum[$backend_name][$server_name] += $tr
+    }
+    haproxy_server_total_time_milliseconds[$backend_name][$server_name] = $tt
+    haproxy_server_total_time_milliseconds_sum[$backend_name][$server_name] += $tt
   }
 }
 
