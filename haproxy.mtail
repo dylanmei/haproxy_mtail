@@ -27,6 +27,7 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
   gauge haproxy_backend_active_connections by backend
   counter haproxy_backend_response_count by backend
   counter haproxy_backend_retry_count by backend
+  gauge haproxy_backend_queue_count by backend
   counter haproxy_backend_bytes_read by backend
   counter haproxy_backend_http_request_count by backend, http_method
   counter haproxy_backend_http_response_count by backend, status_code
@@ -34,6 +35,7 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
   gauge haproxy_server_active_connections by backend, server
   counter haproxy_server_response_count by backend, server
   counter haproxy_server_retry_count by backend, server
+  gauge haproxy_server_queue_count by backend, server
   counter haproxy_server_bytes_read by backend, server
   counter haproxy_server_http_request_count by backend, server, http_method
   counter haproxy_server_http_response_count by backend, server, status_code
@@ -67,6 +69,7 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
     haproxy_backend_active_connections[$backend_name] = $beconn
     haproxy_backend_response_count[$backend_name]++
     haproxy_backend_retry_count[$backend_name]++
+    haproxy_backend_queue_count[$backend_name] = $backend_queue
     haproxy_backend_bytes_read[$backend_name] += $bytes_read
     haproxy_backend_http_request_count[$backend_name][$http_method]++
     haproxy_backend_http_response_count[$backend_name][$status_code]++
@@ -76,6 +79,7 @@ def syslog {/(?P<date>(?P<legacy_date>\w+\s+\d+\s+\d+:\d+:\d+)|(?P<rfc3339_date>
     len($redispatched) == 0 {
       haproxy_server_retry_count[$backend_name][$server_name]++
     }
+    haproxy_server_queue_count[$backend_name][$server_name] = $srv_queue
     haproxy_server_bytes_read[$backend_name][$server_name] += $bytes_read
     haproxy_server_http_request_count[$backend_name][$server_name][$http_method]++
     haproxy_server_http_response_count[$backend_name][$server_name][$status_code]++
