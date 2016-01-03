@@ -5,8 +5,9 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ADD haproxy.start.sh  /start
-ADD haproxy.reload.sh /reload
-ADD rsyslog.conf      /etc/rsyslog.conf
-ADD haproxy.cfg       /etc/haproxy/haproxy.cfg
+ADD haproxy.start.sh     /start
+ADD haproxy.reload.sh    /reload
+ADD rsyslog.conf         /etc/rsyslog.conf
+ADD haproxy.logrotate.sh /etc/haproxy/logrotate.sh
+ADD haproxy.cfg          /etc/haproxy/haproxy.cfg
 CMD ["/start"]
