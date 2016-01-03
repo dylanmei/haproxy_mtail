@@ -30,3 +30,12 @@ webapp:
   image: training/webapp
   expose:
     - 5000
+prometheus:
+  image: prom/prometheus
+  command: -config.file=/etc/prometheus.yml
+  ports:
+    - 9090:9090
+  links:
+    - mtail
+  volumes:
+    - ./prometheus.yml:/etc/prometheus.yml
