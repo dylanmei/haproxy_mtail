@@ -1,0 +1,20 @@
+# Configures a proxy to forward/mess with your requests.
+# This example adds a 5s delay to the response.
+proxy:
+  - name: http_proxy
+    config:
+      host: 0.0.0.0
+      port: 5000
+      proxy_host: webapp
+      proxy_port: 5000
+
+# Proxy plugins
+middleware:
+
+  # HTTP response delay plugin
+  - name: http_delay
+    config:
+      delay: 5
+
+  # Log in/out messages
+  - name: logger

@@ -1,14 +1,3 @@
-haproxy:
-  build: .
-  dockerfile: Dockerfile.haproxy
-  command: /start
-  ports:
-    - 8080:80
-    - 3000:3000
-  links:
-    - webapp
-  volumes:
-    - ./logs:/var/log/haproxy
 mtail:
   image: dylanmei/mtail
   command: -progs /etc/mtail -logs /var/log/haproxy/haproxy.log -v 3 -alsologtostderr
@@ -17,6 +6,26 @@ mtail:
   volumes:
     - ./logs:/var/log/haproxy
     - ./haproxy.mtail:/etc/mtail/haproxy.mtail
+haproxy:
+  build: .
+  dockerfile: Dockerfile.haproxy
+  command: /start
+  ports:
+    - 8080:80
+    - 3000:3000
+  links:
+    - muxy:webapp
+  volumes:
+    - ./logs:/var/log/haproxy
+muxy:
+  image: dylanmei/muxy
+  command: proxy --config /etc/muxy.yml
+  expose:
+    - 5000
+  links:
+    - webapp
+  volumes:
+    - ./muxy.yml:/etc/muxy.yml
 webapp:
   image: training/webapp
   expose:
